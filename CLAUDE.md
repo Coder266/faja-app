@@ -7,7 +7,7 @@ Monorepo with two independent apps:
 - `backend/` — Go module (`github.com/Coder266/faja-app/backend`), plain `net/http`, entry point `main.go`, serves on `:8080`.
 - `frontend/` — Vue 3 + Vite + TypeScript app (scaffolded via `npm create vue@latest`).
 
-There is no shared build system tying the two together; run/build each independently.
+There is no shared build system tying the two together; run/build each independently. A root **`Makefile`** wraps the common flows so you don't have to memorize them — `make` (or `make help`) lists all targets. Everyday: `make dev` (API + Vite together), `make build`/`make run` (single embedded binary), `make check` (everything CI runs). The raw commands are still documented per-app below.
 
 ## Stories and the agent workflow
 
@@ -106,6 +106,23 @@ build — that's expected and they stay untracked/ignored; don't commit them.
 The static handler is a plain `http.FileServer` over the embedded FS (no SPA
 fallback to `index.html` for unknown paths — this app is effectively a
 single page, so that's not needed today).
+
+## Codebase map (for bugfixing)
+
+All of S1–S10 are implemented and committed. Where things live and how to reproduce a bug offline:
+
+**Backend (`backend/`)** — three data packages plus the wiring:
+- `ipma/` — IPMA open-data clients: `airtemp.go` (S1, air temp min/max), `uv.go` (S2, UV index + PT/EN WHO classification), `watertemp.go` (S3, sea-surface temp). One shared `Client` struct; `globalIdLocal` codes are `2310300` (Funchal, air+UV) and `2310326` (Madeira south coast, water).
+- `tides/` — `tides.go` + `parse.go` (S4): scrapes `tabuademares.com/pt/madeira/funchal` with a `golang.org/x/net/html` parser (the only third-party dep). Defensive: on markup change it returns `nil` tides + a logged warning, never a crash. Has its own ≥6h cache. Selector strategy + robots.txt findings are documented in the source comments — read them before touching the parser.
+- `conditions/` — `conditions.go` (S5): the `Aggregator` behind `GET /api/conditions`. Fetches the four sources concurrently, nulls only the failed field (still 200), 30-min in-memory cache.
+- `main.go` — mux wiring, `withCORS` (dev fallback), and the embedded-SPA static handler. `web/web.go` does the `go:embed`.
+- **Testing seam:** every client exposes injectable `BaseURL`, `HTTPClient`, and `Now func() time.Time` fields precisely so tests (and repro cases) run against `testdata/` fixtures or `httptest`, never live network. To reproduce a parsing bug, add/adjust a fixture and pin `Now` — don't hit the real API. Errors are typed (`*ipma.Error`); "today" is always computed in `Atlantic/Madeira`.
+
+**Frontend (`frontend/src/`)**:
+- `api/conditions.ts` — typed `Conditions` client (matches the S5 JSON; nullable fields). Calls the relative `/api/conditions` (proxied in dev, same-origin in prod).
+- `lib/formatConditions.ts` — **pure** formatting/mapping helpers (date `DD/MM`, temp ranges, UV lines, tides, `—` for nulls). **Display/formatting bugs almost always live here**, and it's plain TS so `npm run type-check` covers it.
+- `components/PosterBoard.vue` — fetch + `status: loading|ready|error` state, refetch on visibility + hourly + 30s error-retry. `InfoBlock.vue` is presentational (renders `lines` + placeholders). `PosterBackdrop.vue` is decorative. Caveat handwriting font is bundled locally in `assets/fonts/` (no CDN).
+- No test runner is configured; type-check is the safety net. CI runs `type-check` + `build` + `lint`.
 
 ## Git / GitHub
 
