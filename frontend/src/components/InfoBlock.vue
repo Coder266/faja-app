@@ -16,29 +16,53 @@ export interface ValueLine {
   size?: 'lg' | 'sm'
 }
 
-defineProps<{
-  shape: BlockShape
-  labelPt: string
-  labelEn?: string
-  lines: ValueLine[]
-}>()
+withDefaults(
+  defineProps<{
+    shape: BlockShape
+    labelPt: string
+    labelEn?: string
+    lines: ValueLine[]
+    /** True before the first fetch resolves; renders shimmer placeholders
+     * instead of `lines`, sized to match what will render so the layout
+     * doesn't jump once real values arrive. */
+    loading?: boolean
+    /** Sizes/count of the placeholder bars shown while `loading`; should
+     * mirror the typical shape of this block's real `lines` output. */
+    placeholderSizes?: Array<'lg' | 'sm'>
+  }>(),
+  {
+    loading: false,
+    placeholderSizes: () => ['lg'],
+  },
+)
 </script>
 
 <template>
-  <div class="block" :class="`block--${shape}`">
+  <div class="block" :class="`block--${shape}`" :aria-busy="loading || undefined">
     <div class="block__label">
       <p class="block__label-pt">{{ labelPt }}</p>
       <p v-if="labelEn" class="block__label-en">{{ labelEn }}</p>
     </div>
     <div class="block__value">
-      <p
-        v-for="(line, i) in lines"
-        :key="i"
-        class="block__line"
-        :class="`block__line--${line.size ?? 'lg'}`"
-      >
-        {{ line.text }}
-      </p>
+      <template v-if="loading">
+        <span
+          v-for="(size, i) in placeholderSizes"
+          :key="i"
+          class="block__placeholder"
+          :class="`block__placeholder--${size}`"
+          aria-hidden="true"
+        />
+      </template>
+      <template v-else>
+        <p
+          v-for="(line, i) in lines"
+          :key="i"
+          class="block__line"
+          :class="`block__line--${line.size ?? 'lg'}`"
+        >
+          {{ line.text }}
+        </p>
+      </template>
     </div>
   </div>
 </template>
@@ -90,6 +114,52 @@ defineProps<{
 
 .block__line--sm {
   font-size: clamp(1.1rem, 3vw, 1.5rem);
+}
+
+/* Loading placeholder bars: sized to match block__line--lg/--sm so a block
+   doesn't change height once real values replace them. */
+.block__placeholder {
+  display: block;
+  width: 55%;
+  border-radius: 0.35em;
+  background: linear-gradient(
+    100deg,
+    rgba(255, 255, 255, 0.12) 30%,
+    rgba(255, 255, 255, 0.32) 50%,
+    rgba(255, 255, 255, 0.12) 70%
+  );
+  background-size: 250% 100%;
+  animation: block__placeholder-shimmer 1.8s ease-in-out infinite;
+}
+
+.block__placeholder + .block__placeholder {
+  margin-top: 0.35em;
+}
+
+.block__placeholder--lg {
+  height: clamp(1.8rem, 5.5vw, 2.75rem);
+  width: 60%;
+}
+
+.block__placeholder--sm {
+  height: clamp(1.1rem, 3vw, 1.5rem);
+  width: 45%;
+}
+
+@keyframes block__placeholder-shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .block__placeholder {
+    animation: none;
+    background: rgba(255, 255, 255, 0.2);
+  }
 }
 
 /* Position within the desktop poster grid (see PosterBoard.vue) and a

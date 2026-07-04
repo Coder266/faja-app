@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import { onMounted, onUnmounted, ref } from 'vue'
-import InfoBlock from '@/components/InfoBlock.vue'
+import InfoBlock, { type ValueLine } from '@/components/InfoBlock.vue'
 import PosterBackdrop from '@/components/PosterBackdrop.vue'
 import { fetchConditions, type Conditions } from '@/api/conditions'
 import {
+  DASH_LINE,
   dataBlockLines,
   highTideBlockLines,
   lowTideBlockLines,
@@ -12,23 +13,63 @@ import {
   waterBlockLines,
 } from '@/lib/formatConditions'
 
+/**
+ * Explicit UI status instead of inferring it from `conditions === null`, so
+ * "no data yet" (loading) and "the fetch failed" (error) can render
+ * differently: loading shows shimmer placeholders, error shows `—`
+ * everywhere plus a bilingual note. A successful fetch that returns partial
+ * nulls is `ready` — per-field `—` is handled inside the formatConditions
+ * helpers, not here.
+ */
+type Status = 'loading' | 'ready' | 'error'
+
 // At least hourly, per S7, so a kiosk/pinned tab rolls over to the new day
 // even if it's never brought back to the foreground.
 const REFRESH_INTERVAL_MS = 60 * 60 * 1000
 
-// Before the first successful fetch (and on a request error) every block
-// renders with no lines, i.e. blank. The polished loading skeleton / `—`
-// placeholder / offline notice are S8's job, not this story's.
+// While in the error state, retry sooner than the hourly refresh so a
+// transient network blip clears itself without the visitor doing anything.
+const RETRY_INTERVAL_MS = 30 * 1000
+
+const status = ref<Status>('loading')
 const conditions = ref<Conditions | null>(null)
+
+let intervalId: ReturnType<typeof setInterval> | undefined
+let retryIntervalId: ReturnType<typeof setInterval> | undefined
+
+function stopRetryTimer() {
+  if (retryIntervalId !== undefined) {
+    clearInterval(retryIntervalId)
+    retryIntervalId = undefined
+  }
+}
+
+function startRetryTimer() {
+  if (retryIntervalId !== undefined) return
+  retryIntervalId = setInterval(() => void refresh(), RETRY_INTERVAL_MS)
+}
 
 async function refresh() {
   try {
-    conditions.value = await fetchConditions()
+    const data = await fetchConditions()
+    conditions.value = data
+    status.value = 'ready'
+    stopRetryTimer()
   } catch (err) {
-    // S8 adds user-visible error handling and retry; for now, log and keep
-    // showing the last known-good values.
     console.error('Failed to fetch /api/conditions', err)
+    // Whole-request failure: don't keep showing stale values next to the
+    // "data unavailable" note — every block goes to `—` until a retry (or
+    // the hourly refresh, or a visibility-change refresh) succeeds.
+    conditions.value = null
+    status.value = 'error'
+    startRetryTimer()
   }
+}
+
+/** Maps the current conditions through `formatter`, falling back to a
+ * single `—` line when there's no usable response at all (loading/error). */
+function linesFor(formatter: (c: Conditions) => ValueLine[]): ValueLine[] {
+  return conditions.value ? formatter(conditions.value) : DASH_LINE
 }
 
 function handleVisibilityChange() {
@@ -36,8 +77,6 @@ function handleVisibilityChange() {
     void refresh()
   }
 }
-
-let intervalId: ReturnType<typeof setInterval> | undefined
 
 onMounted(() => {
   void refresh()
@@ -48,62 +87,100 @@ onMounted(() => {
 onUnmounted(() => {
   document.removeEventListener('visibilitychange', handleVisibilityChange)
   if (intervalId !== undefined) clearInterval(intervalId)
+  stopRetryTimer()
 })
 </script>
 
 <template>
-  <main class="poster" aria-label="Fajã dos Padres — condições do dia">
-    <PosterBackdrop />
+  <main class="poster-shell" aria-label="Fajã dos Padres — condições do dia">
+    <p v-if="status === 'error'" class="status-note" role="status">
+      Dados indisponíveis · Data unavailable
+    </p>
 
-    <InfoBlock
-      shape="data"
-      label-pt="Data"
-      label-en="Date"
-      :lines="conditions ? dataBlockLines(conditions) : []"
-    />
+    <div class="poster">
+      <PosterBackdrop />
 
-    <InfoBlock
-      shape="temperature"
-      label-pt="Temperatura"
-      label-en="Temperature"
-      :lines="conditions ? temperatureBlockLines(conditions) : []"
-    />
+      <InfoBlock
+        shape="data"
+        label-pt="Data"
+        label-en="Date"
+        :loading="status === 'loading'"
+        :lines="linesFor(dataBlockLines)"
+      />
 
-    <InfoBlock
-      shape="water"
-      label-pt="Temperatura da água"
-      label-en="Water temperature"
-      :lines="conditions ? waterBlockLines(conditions) : []"
-    />
+      <InfoBlock
+        shape="temperature"
+        label-pt="Temperatura"
+        label-en="Temperature"
+        :loading="status === 'loading'"
+        :lines="linesFor(temperatureBlockLines)"
+      />
 
-    <InfoBlock shape="uv" label-pt="UV" :lines="conditions ? uvBlockLines(conditions) : []" />
+      <InfoBlock
+        shape="water"
+        label-pt="Temperatura da água"
+        label-en="Water temperature"
+        :loading="status === 'loading'"
+        :lines="linesFor(waterBlockLines)"
+      />
 
-    <InfoBlock
-      shape="highTide"
-      label-pt="Maré cheia"
-      label-en="High tide"
-      :lines="conditions ? highTideBlockLines(conditions) : []"
-    />
+      <InfoBlock
+        shape="uv"
+        label-pt="UV"
+        :loading="status === 'loading'"
+        :placeholder-sizes="['lg', 'sm', 'sm']"
+        :lines="linesFor(uvBlockLines)"
+      />
 
-    <InfoBlock
-      shape="lowTide"
-      label-pt="Maré vazia"
-      label-en="Low tide"
-      :lines="conditions ? lowTideBlockLines(conditions) : []"
-    />
+      <InfoBlock
+        shape="highTide"
+        label-pt="Maré cheia"
+        label-en="High tide"
+        :loading="status === 'loading'"
+        :lines="linesFor(highTideBlockLines)"
+      />
 
-    <div class="wordmark">
-      <span class="wordmark__glyph" aria-hidden="true">J</span>
-      <span class="wordmark__text">Fajã dos<br />Padres</span>
+      <InfoBlock
+        shape="lowTide"
+        label-pt="Maré vazia"
+        label-en="Low tide"
+        :loading="status === 'loading'"
+        :placeholder-sizes="['lg', 'lg']"
+        :lines="linesFor(lowTideBlockLines)"
+      />
+
+      <div class="wordmark">
+        <span class="wordmark__glyph" aria-hidden="true">J</span>
+        <span class="wordmark__text">Fajã dos<br />Padres</span>
+      </div>
     </div>
   </main>
 </template>
 
 <style scoped>
+.poster-shell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  max-width: 30rem;
+  gap: 0.6rem;
+}
+
+.status-note {
+  font-family: var(--font-serif);
+  font-size: 0.75rem;
+  line-height: 1.3;
+  color: var(--color-text-label-soft);
+  background: rgba(255, 255, 255, 0.6);
+  padding: 0.3rem 0.9rem;
+  border-radius: 999px;
+  text-align: center;
+}
+
 .poster {
   position: relative;
   width: 100%;
-  max-width: 30rem;
   background: var(--color-poster-bg);
   border-radius: 1.25rem;
   box-shadow: 0 1.5rem 3rem rgba(20, 40, 65, 0.18);
