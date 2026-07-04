@@ -1,0 +1,56 @@
+{
+  "owner": "IPMA",
+  "country": "PT",
+  "data": [
+    {
+      "precipitaProb": "0.0",
+      "tMin": "20.9",
+      "tMax": "26.0",
+      "predWindDir": "NW",
+      "idWeatherType": 1,
+      "classWindSpeed": 1,
+      "longitude": "-16.9595",
+      "forecastDate": "2026-07-04",
+      "classPrecInt": null,
+      "latitude": "32.6669",
+      "predWindDirDay1": null,
+      "predWindDirDay2": null,
+      "predWindDirDay3": null,
+      "globalIdLocal": 2310300
+    },
+    {
+      "precipitaProb": "0.0",
+      "tMin": "21.2",
+      "tMax": "25.6",
+      "predWindDir": "NW",
+      "idWeatherType": 1,
+      "classWindSpeed": 1,
+      "longitude": "-16.9595",
+      "forecastDate": "2026-07-05",
+      "classPrecInt": null,
+      "latitude": "32.6669",
+      "predWindDirDay1": null,
+      "predWindDirDay2": null,
+      "predWindDirDay3": null,
+      "globalIdLocal": 2310300
+    },
+    {
+      "precipitaProb": "10.0",
+      "tMin": "21.0",
+      "tMax": "25.1",
+      "predWindDir": "N",
+      "idWeatherType": 3,
+      "classWindSpeed": 1,
+      "longitude": "-16.9595",
+      "forecastDate": "2026-07-06",
+      "classPrecInt": 1,
+      "latitude": "32.6669",
+      "predWindDirDay1": null,
+      "predWindDirDay2": null,
+      "predWindDirDay3": null,
+      "globalIdLocal": 2310300
+    }
+  ],
+  "globalIdLocal": 2310300,
+  "dataUpdate": "2026-07-04T09:00:00"
+}
