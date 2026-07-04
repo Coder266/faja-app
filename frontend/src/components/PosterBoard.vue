@@ -1,53 +1,95 @@
 <script setup lang="ts">
+import { onMounted, onUnmounted, ref } from 'vue'
 import InfoBlock from '@/components/InfoBlock.vue'
 import PosterBackdrop from '@/components/PosterBackdrop.vue'
+import { fetchConditions, type Conditions } from '@/api/conditions'
+import {
+  dataBlockLines,
+  highTideBlockLines,
+  lowTideBlockLines,
+  temperatureBlockLines,
+  uvBlockLines,
+  waterBlockLines,
+} from '@/lib/formatConditions'
 
-// Static placeholder values for this story (S6 is visual-only). S7 replaces
-// these with values bound from GET /api/conditions.
+// At least hourly, per S7, so a kiosk/pinned tab rolls over to the new day
+// even if it's never brought back to the foreground.
+const REFRESH_INTERVAL_MS = 60 * 60 * 1000
+
+// Before the first successful fetch (and on a request error) every block
+// renders with no lines, i.e. blank. The polished loading skeleton / `—`
+// placeholder / offline notice are S8's job, not this story's.
+const conditions = ref<Conditions | null>(null)
+
+async function refresh() {
+  try {
+    conditions.value = await fetchConditions()
+  } catch (err) {
+    // S8 adds user-visible error handling and retry; for now, log and keep
+    // showing the last known-good values.
+    console.error('Failed to fetch /api/conditions', err)
+  }
+}
+
+function handleVisibilityChange() {
+  if (document.visibilityState === 'visible') {
+    void refresh()
+  }
+}
+
+let intervalId: ReturnType<typeof setInterval> | undefined
+
+onMounted(() => {
+  void refresh()
+  document.addEventListener('visibilitychange', handleVisibilityChange)
+  intervalId = setInterval(() => void refresh(), REFRESH_INTERVAL_MS)
+})
+
+onUnmounted(() => {
+  document.removeEventListener('visibilitychange', handleVisibilityChange)
+  if (intervalId !== undefined) clearInterval(intervalId)
+})
 </script>
 
 <template>
   <main class="poster" aria-label="Fajã dos Padres — condições do dia">
     <PosterBackdrop />
 
-    <InfoBlock shape="data" label-pt="Data" label-en="Date" :lines="[{ text: '03/07' }]" />
+    <InfoBlock
+      shape="data"
+      label-pt="Data"
+      label-en="Date"
+      :lines="conditions ? dataBlockLines(conditions) : []"
+    />
 
     <InfoBlock
       shape="temperature"
       label-pt="Temperatura"
       label-en="Temperature"
-      :lines="[{ text: '25–26 °C' }]"
+      :lines="conditions ? temperatureBlockLines(conditions) : []"
     />
 
     <InfoBlock
       shape="water"
       label-pt="Temperatura da água"
       label-en="Water temperature"
-      :lines="[{ text: '19 °C' }]"
+      :lines="conditions ? waterBlockLines(conditions) : []"
     />
 
-    <InfoBlock
-      shape="uv"
-      label-pt="UV"
-      :lines="[
-        { text: '8' },
-        { text: 'muito alto', size: 'sm' },
-        { text: 'very high', size: 'sm' },
-      ]"
-    />
+    <InfoBlock shape="uv" label-pt="UV" :lines="conditions ? uvBlockLines(conditions) : []" />
 
     <InfoBlock
       shape="highTide"
       label-pt="Maré cheia"
       label-en="High tide"
-      :lines="[{ text: '17:02' }]"
+      :lines="conditions ? highTideBlockLines(conditions) : []"
     />
 
     <InfoBlock
       shape="lowTide"
       label-pt="Maré vazia"
       label-en="Low tide"
-      :lines="[{ text: '10:39' }, { text: '23:09' }]"
+      :lines="conditions ? lowTideBlockLines(conditions) : []"
     />
 
     <div class="wordmark">
