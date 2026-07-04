@@ -16,13 +16,19 @@
       "TaskList",
       "TaskGet",
       "TaskOutput",
-      "TaskStop"
+      "TaskStop",
+      "Edit(.claude/agents/**)",
+      "Write(.claude/agents/**)",
+      "Edit(.claude/skills/**)",
+      "Write(.claude/skills/**)",
+      "Edit(.claude/commands/**)",
+      "Write(.claude/commands/**)",
+      "Edit(CLAUDE.md)",
+      "Write(CLAUDE.md)"
     ],
     "ask": [
       "Edit(.claude/**)",
       "Write(.claude/**)",
-      "Edit(CLAUDE.md)",
-      "Write(CLAUDE.md)",
       "Edit(.devcontainer/**)",
       "Write(.devcontainer/**)",
       "WebFetch",

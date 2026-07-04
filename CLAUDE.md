@@ -44,3 +44,6 @@ Requires Node 22+ (the Vue/Vite scaffolding tool refuses to run on Node 18).
 
 - Repo remote: private repo under the `Coder266` GitHub account, authenticated locally via `gh auth login`.
 - Local git identity for this repo is set to the personal email (not the global/work identity configured elsewhere on this machine) — check `git config user.email` if commits look wrong.
+- `gh` CLI is installed via the `ghcr.io/devcontainers/features/github-cli:1` devcontainer feature (not manually `apt`-installed — that gets wiped on rebuild).
+- `gh auth login` state persists across rebuilds via a named volume mounted at `/home/vscode/.config/gh` (`GH_CONFIG_DIR` env var points there). This exists because JetBrains Gateway sets `XDG_CONFIG_HOME` to `/.jbdevcontainer/config`, which lives in the container's ephemeral filesystem and is wiped on every rebuild — `GH_CONFIG_DIR` takes precedence over `XDG_CONFIG_HOME` and overrides that.
+- If `git push`/`gh` commands fail after creating a new repo with a `refusing to allow an OAuth App to create or update workflow` error, the token is missing the `workflow` scope — run `gh auth refresh -h github.com -s workflow`. Also run `gh auth setup-git` once per fresh login so `git push` picks up gh's credentials (git doesn't do this automatically).
