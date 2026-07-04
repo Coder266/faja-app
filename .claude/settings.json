@@ -1,0 +1,47 @@
+{
+  "env": {
+    "DISABLE_AUTOUPDATER": "1"
+  },
+  "permissions": {
+    "allow": [
+      "Bash",
+      "Edit",
+      "Write",
+      "Read",
+      "Glob",
+      "Grep",
+      "Agent",
+      "TaskCreate",
+      "TaskUpdate",
+      "TaskList",
+      "TaskGet",
+      "TaskOutput",
+      "TaskStop"
+    ],
+    "ask": [
+      "Edit(.claude/**)",
+      "Write(.claude/**)",
+      "Edit(CLAUDE.md)",
+      "Write(CLAUDE.md)",
+      "Edit(.devcontainer/**)",
+      "Write(.devcontainer/**)",
+      "WebFetch",
+      "WebSearch",
+      "Bash(curl *)",
+      "Bash(wget *)",
+      "Bash(npm install *)",
+      "Bash(npm ci *)",
+      "Bash(npm add *)",
+      "Bash(go get *)",
+      "Bash(go install *)",
+      "Bash(go mod download *)",
+      "Bash(pip install *)",
+      "Bash(apt-get install *)",
+      "Bash(apt install *)",
+      "Bash(sudo apt-get install *)",
+      "Bash(sudo apt install *)",
+      "Bash(git clone *)",
+      "Bash(gh release download *)"
+    ]
+  }
+}

@@ -1,0 +1,33 @@
+# --- Go ---
+backend/tmp/
+backend/backend
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+
+# --- Node / Vue / Vite ---
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+*.local
+
+# --- Editors / IDE ---
+.idea/
+.vscode/*
+!.vscode/extensions.json
+
+# --- Claude Code (local/session-specific) ---
+.claude/settings.local.json
+.claude/scheduled_tasks.lock
+
+# --- OS ---
+.DS_Store
+
+# --- Env ---
+.env
+.env.*
+!.env.example

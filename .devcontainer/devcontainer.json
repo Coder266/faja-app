@@ -1,0 +1,27 @@
+{
+  "name": "Go + Vue + Claude Code",
+  "image": "mcr.microsoft.com/devcontainers/go:1-bookworm",
+  "features": {
+    "ghcr.io/anthropics/devcontainer-features/claude-code:1.0": {},
+    "ghcr.io/devcontainers/features/node:1": {
+      "version": "22"
+    }
+  },
+  "mounts": [
+    "source=claude-code-config-${devcontainerId},target=/home/vscode/.claude,type=volume",
+    "source=claude-code-bashhistory-${devcontainerId},target=/commandhistory,type=volume"
+  ],
+  "containerEnv": {
+    "CLAUDE_CONFIG_DIR": "/home/vscode/.claude"
+  },
+  "customizations": {
+    "jetbrains": {
+      "backend": "GoLand",
+      "plugins": [
+        "org.jetbrains.plugins.vue"
+      ]
+    }
+  },
+  "remoteUser": "vscode",
+  "containerUser": "vscode"
+}
