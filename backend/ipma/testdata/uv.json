@@ -1,0 +1,38 @@
+[
+  {
+    "globalIdLocal": 1010500,
+    "data": "2026-07-04",
+    "intervaloHora": "1",
+    "latitude": "38.7205",
+    "longitude": "-9.1476",
+    "idPeriodo": 1,
+    "iUv": "6.1"
+  },
+  {
+    "globalIdLocal": 2310300,
+    "data": "2026-07-03",
+    "intervaloHora": "1",
+    "latitude": "32.6669",
+    "longitude": "-16.9595",
+    "idPeriodo": 1,
+    "iUv": "7.8"
+  },
+  {
+    "globalIdLocal": 2310300,
+    "data": "2026-07-04",
+    "intervaloHora": "1",
+    "latitude": "32.6669",
+    "longitude": "-16.9595",
+    "idPeriodo": 1,
+    "iUv": "9.3"
+  },
+  {
+    "globalIdLocal": 2310300,
+    "data": "2026-07-05",
+    "intervaloHora": "1",
+    "latitude": "32.6669",
+    "longitude": "-16.9595",
+    "idPeriodo": 1,
+    "iUv": "8.9"
+  }
+]
