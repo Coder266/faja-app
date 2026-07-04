@@ -1,0 +1,15 @@
+# Render Blueprint (https://render.com/docs/blueprint-spec).
+# Deploys the single faja-app Docker image as a free web service. Render
+# injects $PORT (main.go binds it) and auto-deploys on every push to the
+# repo's default branch.
+services:
+  - type: web
+    name: faja-app
+    runtime: docker
+    plan: free
+    # Frankfurt is Render's closest region to Madeira/Portugal.
+    region: frankfurt
+    dockerfilePath: ./Dockerfile
+    # Cheap liveness probe (main.go serves this on the same port).
+    healthCheckPath: /api/health
+    autoDeploy: true

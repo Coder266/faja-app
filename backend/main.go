@@ -4,6 +4,14 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"os"
+
+	// Embeds the IANA timezone database into the binary so
+	// time.LoadLocation("Atlantic/Madeira") works on minimal container
+	// images (e.g. distroless) that ship no system tzdata. Without this the
+	// data packages silently fall back to UTC, which is an hour off during
+	// Madeira's summer DST and mis-computes "today" near midnight.
+	_ "time/tzdata"
 
 	"github.com/Coder266/faja-app/backend/conditions"
 	"github.com/Coder266/faja-app/backend/ipma"
@@ -39,8 +47,15 @@ func main() {
 	// the static file server.
 	mux.Handle("/", http.FileServer(http.FS(web.DistFS())))
 
-	log.Println("listening on :8080")
-	if err := http.ListenAndServe(":8080", withCORS(mux)); err != nil {
+	// Most PaaS hosts (Render, Cloud Run, Fly, …) inject the port to bind on
+	// via $PORT; fall back to 8080 for local runs and the dev docs above.
+	addr := ":8080"
+	if port := os.Getenv("PORT"); port != "" {
+		addr = ":" + port
+	}
+
+	log.Printf("listening on %s", addr)
+	if err := http.ListenAndServe(addr, withCORS(mux)); err != nil {
 		log.Fatal(err)
 	}
 }

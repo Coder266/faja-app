@@ -1,0 +1,29 @@
+# Keep the build context small and reproducible. The Dockerfile rebuilds the
+# frontend and re-embeds it, so local build artifacts and deps must not leak in.
+.git
+.github
+.idea
+.vscode
+.devcontainer
+.claude
+docs
+example.jpg
+README.md
+
+# Node / Vue / Vite build artifacts and deps (reinstalled in the image)
+frontend/node_modules
+frontend/dist
+frontend/.vite
+
+# Go local build artifacts (rebuilt in the image)
+backend/backend
+backend/tmp
+# Any locally-copied SPA embed; the image copies a fresh build in.
+backend/web/dist/*
+!backend/web/dist/.gitkeep
+
+# OS / env
+.DS_Store
+.env
+.env.*
+!.env.example
