@@ -9,6 +9,13 @@ backend/backend
 *.test
 *.out
 
+# --- Embedded frontend build artifact (S9) ---
+# frontend/dist gets copied here for go:embed; keep only the placeholder so
+# `go build`/`go test` still work from a clean checkout without a frontend
+# build. See backend/web/web.go.
+backend/web/dist/*
+!backend/web/dist/.gitkeep
+
 # --- Node / Vue / Vite ---
 frontend/node_modules/
 frontend/dist/

@@ -8,12 +8,14 @@ import (
 	"github.com/Coder266/faja-app/backend/conditions"
 	"github.com/Coder266/faja-app/backend/ipma"
 	"github.com/Coder266/faja-app/backend/tides"
+	"github.com/Coder266/faja-app/backend/web"
 )
 
-// viteDevOrigin is the Vite dev server's default origin. Permissive CORS for
-// this single origin unblocks local frontend development against the
-// backend on :8080; S9 finalizes dev/prod wiring (Vite proxying /api, or a
-// single embedded-binary deployment) where this will likely be revisited.
+// viteDevOrigin is the Vite dev server's default origin. As of S9, `npm run
+// dev` proxies /api/* to this backend (see frontend/vite.config.ts), so the
+// browser only ever talks to the Vite origin and CORS is no longer strictly
+// needed for that flow. withCORS is kept anyway as a harmless fallback for
+// anyone hitting :8080 directly from a page served on :5173.
 const viteDevOrigin = "http://localhost:5173"
 
 func main() {
@@ -29,6 +31,13 @@ func main() {
 		Tides:   tidesClient,
 	}
 	mux.Handle("/api/conditions", aggregator.Handler())
+
+	// Serve the built frontend (embedded from backend/web/dist, see
+	// backend/web/web.go) at "/". Registered on the same mux as the /api/*
+	// routes above; ServeMux matches the most specific pattern, so /api/*
+	// requests are handled by the API and everything else falls through to
+	// the static file server.
+	mux.Handle("/", http.FileServer(http.FS(web.DistFS())))
 
 	log.Println("listening on :8080")
 	if err := http.ListenAndServe(":8080", withCORS(mux)); err != nil {

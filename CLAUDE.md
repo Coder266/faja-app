@@ -40,6 +40,61 @@ npm run dev
 
 Requires Node 22+ (the Vue/Vite scaffolding tool refuses to run on Node 18).
 
+## Dev vs. prod wiring (S9)
+
+The frontend calls the API via a relative path (`/api/conditions`, see
+`frontend/src/api/conditions.ts`), so both flows below make that path resolve
+without any CORS setup being required.
+
+### Dev: two processes + Vite proxy
+
+```bash
+# terminal 1
+cd backend && go run .          # API on :8080
+
+# terminal 2
+cd frontend && npm run dev      # Vite dev server, typically :5173
+```
+
+`frontend/vite.config.ts` has a `server.proxy` entry that forwards `/api/*`
+requests from the Vite dev server to `http://localhost:8080`. The browser
+only ever talks to the Vite origin, so this is not a cross-origin request and
+no CORS is involved. (The backend's `withCORS` middleware permitting
+`http://localhost:5173` is still in place as a harmless fallback for anyone
+hitting `:8080` directly, but the dev flow above no longer depends on it.)
+
+### Prod: one binary
+
+`backend/web/web.go` embeds `backend/web/dist` (via `go:embed`) and
+`main.go` serves it at `/`, with `/api/*` still handled by the API on the
+same mux — the result is a single deployable binary with no separate static
+file host needed. `go:embed` can only reach files inside the backend
+module's own tree, so it can't embed `../frontend/dist` directly; the build
+copies it in first:
+
+```bash
+cd frontend && npm run build              # writes frontend/dist
+rm -rf ../backend/web/dist
+mkdir -p ../backend/web/dist
+cp -r dist/. ../backend/web/dist/
+cd ../backend && go build -o backend .     # embeds backend/web/dist, single binary
+./backend                                  # serves both the SPA and /api/* on :8080
+```
+
+`backend/web/dist` is a gitignored build artifact (like the `backend`
+binary itself) — only a placeholder `backend/web/dist/.gitkeep` is committed
+so `go build ./...` and `go test ./...` still compile from a clean checkout
+without requiring a frontend build first (the embed pattern is
+`//go:embed all:dist`; the `all:` prefix is required so the directory still
+embeds successfully when it contains only that dotfile placeholder — a plain
+`//go:embed dist` fails to compile in that case with "contains no embeddable
+files"). After running the real build sequence above, `git status` will show
+new untracked files under `backend/web/dist/` from the frontend
+build — that's expected and they stay untracked/ignored; don't commit them.
+The static handler is a plain `http.FileServer` over the embedded FS (no SPA
+fallback to `index.html` for unknown paths — this app is effectively a
+single page, so that's not needed today).
+
 ## Git / GitHub
 
 - Repo remote: private repo under the `Coder266` GitHub account, authenticated locally via `gh auth login`.
