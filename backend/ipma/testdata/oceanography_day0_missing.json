@@ -1,0 +1,33 @@
+{
+  "owner": "IPMA",
+  "country": "PT",
+  "data": [
+    {
+      "latitude": "37.0827",
+      "longitude": "-8.6459",
+      "forecastDate": "2026-07-04",
+      "current": "0.2",
+      "currentDir": "NW",
+      "waveHeight": "1.2",
+      "wavePeriod": "7",
+      "waveDirection": "NW",
+      "sstMin": "20.1",
+      "sstMax": "21.3",
+      "globalIdLocal": 1010500
+    },
+    {
+      "latitude": "37.7412",
+      "longitude": "-25.6756",
+      "forecastDate": "2026-07-04",
+      "current": "0.1",
+      "currentDir": "N",
+      "waveHeight": "1.5",
+      "wavePeriod": "8",
+      "waveDirection": "N",
+      "sstMin": "21.0",
+      "sstMax": "22.4",
+      "globalIdLocal": 3510100
+    }
+  ],
+  "dataUpdate": "2026-07-04T09:00:00"
+}
