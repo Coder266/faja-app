@@ -9,6 +9,18 @@ Monorepo with two independent apps:
 
 There is no shared build system tying the two together; run/build each independently.
 
+## Stories and the agent workflow
+
+The product backlog is `docs/stories.md` (stories S1–S10 in three epics: backend data services, frontend poster UI, integration/delivery). It includes the verified IPMA endpoints and the tabuademares.com scraping constraints — treat it as the source of truth for scope and acceptance criteria.
+
+Implementation runs through a two-agent pipeline orchestrated from the main session:
+
+- **`implementer`** (`.claude/agents/implementer.md`, Sonnet) — implements exactly one story (or one round of review fixes) per assignment, writes the story's tests against fixtures (never live network in tests), runs gofmt/vet/`go test` or `type-check`/`build`, and **never commits** — it leaves changes in the working tree.
+- **`reviewer`** (`.claude/agents/reviewer.md`, Opus, read-only + Bash) — reviews the uncommitted working tree against the story's acceptance criteria, re-runs verification itself, and replies with `VERDICT: APPROVED` or `VERDICT: CHANGES_REQUESTED` plus numbered `file:line` findings. Only real problems block; style nits are non-blocking notes.
+- **`/implement-epic`** (`.claude/skills/implement-epic/SKILL.md`) — the orchestrator. `/implement-epic` runs all remaining stories, `/implement-epic 1` one epic, `/implement-epic S4` one story. Per story it loops implementer → reviewer → fix rounds (same agents continued via SendMessage, max 3 fix rounds) until approval, then commits that story as `S<n>: <title>`. Already-committed `S<n>:` stories are skipped, so the command is resumable. It stops and reports if a story can't pass review in 3 rounds. It never pushes.
+
+If you change the agent contracts (verdict format, commit convention, no-commit rule), update all three files together — the loop depends on them agreeing.
+
 ## Dev environment
 
 This project runs inside a devcontainer, connected to via **GoLand** (JetBrains Gateway), not VS Code. This matters for config:

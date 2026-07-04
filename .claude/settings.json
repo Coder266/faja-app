@@ -49,5 +49,19 @@
       "Bash(git clone *)",
       "Bash(gh release download *)"
     ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "if": "Bash(curl *)",
+            "command": "cmd=$(jq -r '.tool_input.command'); if echo \"$cmd\" | grep -qE '(localhost|127\\.0\\.0\\.1)'; then printf %s '{\"hookSpecificOutput\":{\"hookEventName\":\"PreToolUse\",\"permissionDecision\":\"allow\",\"permissionDecisionReason\":\"curl targeting localhost\"}}'; fi"
+          }
+        ]
+      }
+    ]
   }
 }
