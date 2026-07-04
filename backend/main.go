@@ -15,8 +15,8 @@ import (
 // dev` proxies /api/* to this backend (see frontend/vite.config.ts), so the
 // browser only ever talks to the Vite origin and CORS is no longer strictly
 // needed for that flow. withCORS is kept anyway as a harmless fallback for
-// anyone hitting :8080 directly from a page served on :5173.
-const viteDevOrigin = "http://localhost:5173"
+// anyone hitting :8080 directly from a page served on :5174.
+const viteDevOrigin = "http://localhost:5174"
 
 func main() {
 	mux := http.NewServeMux()

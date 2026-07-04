@@ -16,6 +16,15 @@ export default defineConfig({
     },
   },
   server: {
+    // Listen on 0.0.0.0, not just localhost. Inside the devcontainer the
+    // host reaches Vite over a forwarded port, so binding to loopback only
+    // makes the page unreachable from the host browser.
+    host: true,
+    // 5173 is used by the devcontainer itself, so run the dev server on 5174.
+    // strictPort makes Vite fail loudly if 5174 is taken instead of silently
+    // hopping to another port (which breaks the fixed proxy/URL assumptions).
+    port: 5174,
+    strictPort: true,
     proxy: {
       // Forward API calls to the Go backend during `npm run dev` so the
       // frontend can keep using relative paths (e.g. `/api/conditions`)

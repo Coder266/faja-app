@@ -15,8 +15,10 @@
   ],
   "containerEnv": {
     "CLAUDE_CONFIG_DIR": "/home/vscode/.claude",
-    "GH_CONFIG_DIR": "/home/vscode/.config/gh"
+    "GH_CONFIG_DIR": "/home/vscode/.config/gh",
+    "PLAYWRIGHT_BROWSERS_PATH": "/home/vscode/.cache/ms-playwright"
   },
+  "postCreateCommand": "cd frontend && npm install && npx playwright install --with-deps chromium",
   "customizations": {
     "jetbrains": {
       "backend": "GoLand",

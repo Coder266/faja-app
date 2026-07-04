@@ -2,6 +2,7 @@
 import { onMounted, onUnmounted, ref } from 'vue'
 import InfoBlock, { type ValueLine } from '@/components/InfoBlock.vue'
 import PosterBackdrop from '@/components/PosterBackdrop.vue'
+import logoUrl from '@/assets/imgs/logo.png'
 import { fetchConditions, type Conditions } from '@/api/conditions'
 import {
   DASH_LINE,
@@ -150,7 +151,7 @@ onUnmounted(() => {
       />
 
       <div class="wordmark">
-        <span class="wordmark__glyph" aria-hidden="true">J</span>
+        <img class="wordmark__glyph" :src="logoUrl" alt="" aria-hidden="true" />
         <span class="wordmark__text">Fajã dos<br />Padres</span>
       </div>
     </div>
@@ -191,6 +192,10 @@ onUnmounted(() => {
   grid-template-rows: repeat(8, 1fr);
   gap: 0.9rem;
   aspect-ratio: 3 / 4.1;
+  /* Without this, the grid's automatic min-height (its content min-size,
+     which the tall pebble blocks inflate) overrides `aspect-ratio`, letting
+     the poster stretch to ~2400px instead of honoring the 3:4.1 ratio. */
+  min-height: 0;
   grid-template-areas:
     'data         .          '
     'data         temperature'
@@ -211,16 +216,15 @@ onUnmounted(() => {
   grid-area: wordmark;
   align-self: end;
   display: flex;
-  align-items: flex-end;
-  gap: 0.4rem;
+  align-items: center;
+  gap: 0.45rem;
   color: var(--color-text-label);
 }
 
 .wordmark__glyph {
-  font-family: var(--font-serif);
-  font-weight: 700;
-  font-size: clamp(1.6rem, 4vw, 2.1rem);
-  line-height: 0.8;
+  height: clamp(2.6rem, 6.5vw, 3.5rem);
+  width: auto;
+  display: block;
 }
 
 .wordmark__text {

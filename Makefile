@@ -24,8 +24,8 @@ install: ## Install frontend deps (npm) and tidy Go modules
 ## --- Dev (live reload) ---
 
 .PHONY: dev
-dev: ## Run API (:8080) + Vite dev server (:5173) together; Ctrl-C stops both
-	@echo "API on :8080, web on :5173 (Vite proxies /api -> :8080). Ctrl-C to stop."
+dev: ## Run API (:8080) + Vite dev server (:5174) together; Ctrl-C stops both
+	@echo "API on :8080, web on :5174 (Vite proxies /api -> :8080). Ctrl-C to stop."
 	@trap 'kill 0' INT TERM; \
 		( cd $(BACKEND) && go run . ) & \
 		( cd $(FRONTEND) && npm run dev ) & \
@@ -36,7 +36,7 @@ dev-api: ## Run only the Go API on :8080
 	cd $(BACKEND) && go run .
 
 .PHONY: dev-web
-dev-web: ## Run only the Vite dev server on :5173
+dev-web: ## Run only the Vite dev server on :5174
 	cd $(FRONTEND) && npm run dev
 
 ## --- Production build (single binary) ---

@@ -32,6 +32,8 @@ Base image: `mcr.microsoft.com/devcontainers/go:1-bookworm`, plus devcontainer f
 
 **Any change to `.devcontainer/devcontainer.json` requires a container rebuild to take effect** (JetBrains: rebuild via Gateway; there is no in-place reload).
 
+**Playwright (for UI screenshots/verification)** is provisioned on container create: `playwright` is a `frontend` devDependency and `postCreateCommand` runs `npx playwright install --with-deps chromium`. Browsers are pinned to `/home/vscode/.cache/ms-playwright` via the `PLAYWRIGHT_BROWSERS_PATH` env — set in `containerEnv` so the create-time install and the JetBrains Gateway shell agree on the path (the Gateway shell otherwise defaults browsers into the ephemeral `/.jbdevcontainer` tree, same gotcha as `GH_CONFIG_DIR`). To screenshot the running dev server, drive Chromium with a script under `frontend/` (so the bare `playwright` import resolves from `frontend/node_modules`).
+
 ## Go backend
 
 ```bash
@@ -65,14 +67,14 @@ without any CORS setup being required.
 cd backend && go run .          # API on :8080
 
 # terminal 2
-cd frontend && npm run dev      # Vite dev server, typically :5173
+cd frontend && npm run dev      # Vite dev server on :5174 (5173 is the devcontainer)
 ```
 
 `frontend/vite.config.ts` has a `server.proxy` entry that forwards `/api/*`
 requests from the Vite dev server to `http://localhost:8080`. The browser
 only ever talks to the Vite origin, so this is not a cross-origin request and
 no CORS is involved. (The backend's `withCORS` middleware permitting
-`http://localhost:5173` is still in place as a harmless fallback for anyone
+`http://localhost:5174` is still in place as a harmless fallback for anyone
 hitting `:8080` directly, but the dev flow above no longer depends on it.)
 
 ### Prod: one binary
