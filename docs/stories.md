@@ -1,6 +1,6 @@
 # Fajã dos Padres — daily conditions board
 
-Web app replicating the laminated daily-conditions poster at Fajã dos Padres (`example.jpg`):
+Web app replicating the laminated daily-conditions poster at Fajã dos Padres (`docs/reference-poster.jpg`):
 date, air temperature, water temperature, UV index, and high/low tide times, with bilingual
 PT/EN labels over blue pebble-shaped panels and handwritten-style values.
 

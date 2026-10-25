@@ -7,7 +7,6 @@
 .devcontainer
 .claude
 docs
-example.jpg
 README.md
 
 # Node / Vue / Vite build artifacts and deps (reinstalled in the image)
