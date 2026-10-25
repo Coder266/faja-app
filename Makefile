@@ -45,6 +45,8 @@ dev-web: ## Run only the Vite dev server on :5174
 build: build-web ## Build the single deployable binary (embeds the built SPA) -> backend/backend
 	rm -rf $(EMBED_DIR)
 	mkdir -p $(EMBED_DIR)
+	# Keep the tracked embed placeholder so building doesn't dirty the tree.
+	touch $(EMBED_DIR)/.gitkeep
 	cp -r $(FRONTEND)/dist/. $(EMBED_DIR)/
 	cd $(BACKEND) && go build -o backend .
 	@echo "Built $(BACKEND)/backend — run it with 'make run' (serves SPA + /api on :8080)."
@@ -60,7 +62,7 @@ run: build ## Build then run the single binary on :8080
 ## --- Quality checks (what CI runs) ---
 
 .PHONY: check
-check: fmt-check vet test type-check ## Run all backend + frontend checks (mirrors CI)
+check: fmt-check vet test type-check ## Run backend checks + frontend type-check
 
 .PHONY: test
 test: ## Run backend Go tests

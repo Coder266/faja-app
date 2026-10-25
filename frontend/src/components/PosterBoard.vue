@@ -207,7 +207,11 @@ onUnmounted(() => {
     'wordmark     lowTide    ';
 }
 
-.poster > * {
+/* Keep the content above the decorative backdrop, but don't turn the
+   backdrop itself into a grid item: `position: relative` here used to
+   override PosterBackdrop's `position: absolute`, adding a phantom row on
+   mobile and stretching the poster far past its content. */
+.poster > :not(.backdrop) {
   position: relative;
   z-index: 1;
 }
